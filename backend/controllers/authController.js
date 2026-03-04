@@ -78,3 +78,43 @@ export const loginUser = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+//get all students
+export const getAllStudents = async (req, res) => {
+  try {
+    const students = await User.find({ role: "student" }).select("-password");
+
+    res.status(200).json({
+      success: true,
+      count: students.length,
+      students,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+//get all organizers
+export const getAllOrganizers = async (req, res) => {
+  try {
+    const organizers = await User.find({ role: "organizer" }).select("-password");
+
+    res.status(200).json({
+      success: true,
+      count: organizers.length,
+      organizers,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+//logout function
+export const logoutUser = (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Logged out successfully",
+  });
+};
+
+
