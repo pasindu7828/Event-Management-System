@@ -45,6 +45,16 @@ const userSchema = new mongoose.Schema(
       minlength: [6, "Password must be at least 6 characters"],
     },
 
+    studentId: {
+      type: String,
+      unique: true,
+      sparse: true, // allows null for admin
+      required: function () {
+        return this.role === "student" || this.role === "organizer";
+      },
+      trim: true,
+    },
+
     role: {
       type: String,
       enum: ["student", "organizer", "admin"],

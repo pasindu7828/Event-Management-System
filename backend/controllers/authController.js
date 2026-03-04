@@ -4,10 +4,27 @@ import generateToken from "../utils/generateToken.js";
 // REGISTER
 export const registerUser = async (req, res) => {
   try {
-    const { firstName, lastName, phone, email, password, confirmPassword } =
-      req.body;
+    const {
+      firstName,
+      lastName,
+      phone,
+      email,
+      password,
+      confirmPassword,
+      role,
+      studentId,
+    } = req.body;
 
-    if (!firstName || !lastName || !phone || !email || !password || !confirmPassword) {
+    // Basic required fields
+    if (
+      !firstName ||
+      !lastName ||
+      !phone ||
+      !email ||
+      !password ||
+      !confirmPassword ||
+      !role
+    ) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
@@ -15,9 +32,28 @@ export const registerUser = async (req, res) => {
       return res.status(400).json({ message: "Passwords do not match" });
     }
 
+    // Require studentId for student & organizer
+    if (
+      (role === "student" || role === "organizer") &&
+      !studentId
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Student ID is required for this role" });
+    }
+
+    // Check email already exists
     const userExists = await User.findOne({ email });
     if (userExists) {
       return res.status(400).json({ message: "User already exists" });
+    }
+
+    // Check duplicate studentId
+    if (studentId) {
+      const studentIdExists = await User.findOne({ studentId });
+      if (studentIdExists) {
+        return res.status(400).json({ message: "Student ID already exists" });
+      }
     }
 
     const user = await User.create({
@@ -26,6 +62,8 @@ export const registerUser = async (req, res) => {
       phone,
       email,
       password,
+      role,
+      studentId,
     });
 
     res.status(201).json({
@@ -38,6 +76,7 @@ export const registerUser = async (req, res) => {
         phone: user.phone,
         email: user.email,
         role: user.role,
+        studentId: user.studentId,
       },
       token: generateToken(user._id),
     });
@@ -71,6 +110,7 @@ export const loginUser = async (req, res) => {
         phone: user.phone,
         email: user.email,
         role: user.role,
+        studentId: user.studentId,
       },
       token: generateToken(user._id),
     });
