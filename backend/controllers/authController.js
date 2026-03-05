@@ -49,22 +49,30 @@ export const registerUser = async (req, res) => {
     }
 
     // Check duplicate studentId
-    if (studentId) {
-      const studentIdExists = await User.findOne({ studentId });
-      if (studentIdExists) {
-        return res.status(400).json({ message: "Student ID already exists" });
+    if (role === "student" || role === "organizer") {
+      if (studentId) {
+        const studentIdExists = await User.findOne({ studentId });
+        if (studentIdExists) {
+          return res.status(400).json({ message: "Student ID already exists" });
+        }
       }
     }
 
-    const user = await User.create({
+    const userData = {
       firstName,
       lastName,
       phone,
       email,
       password,
       role,
-      studentId,
-    });
+    };
+
+    if (role === "student" || role === "organizer") {
+      userData.studentId = studentId;
+    }
+
+    const user = await User.create(userData);
+
 
     res.status(201).json({
       success: true,
@@ -81,7 +89,31 @@ export const registerUser = async (req, res) => {
       token: generateToken(user._id),
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Register Error Details:", error);
+
+    // Mongoose duplicate key error
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      return res.status(400).json({
+        success: false,
+        message: `${field === 'email' ? 'Email' : 'ID'} already exists`
+      });
+    }
+
+    // Mongoose validation error
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map(val => val.message);
+      return res.status(400).json({
+        success: false,
+        message: messages[0]
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: "Internal Server Error during registration",
+      error: error.message
+    });
   }
 };
 
@@ -115,7 +147,12 @@ export const loginUser = async (req, res) => {
       token: generateToken(user._id),
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Login Error Details:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal Server Error during login",
+      error: error.message
+    });
   }
 };
 

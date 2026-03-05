@@ -1,10 +1,17 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
 
-const HomePage = ({ onSignIn }) => {
+const HomePage = () => {
+  const navigate = useNavigate();
+
+  const handleGetStarted = () => {
+    navigate('/auth');
+  };
+
   return (
     <div className="bg-white min-h-screen font-sans overflow-hidden">
-      <Navbar onSignIn={onSignIn} />
+      <Navbar />
 
       {/* Hero Section */}
       <section className="relative py-20 lg:py-32 overflow-hidden">
@@ -25,7 +32,7 @@ const HomePage = ({ onSignIn }) => {
             </p>
             <div className="flex flex-wrap gap-4">
               <button
-                onClick={onSignIn}
+                onClick={handleGetStarted}
                 className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:shadow-2xl hover:scale-105 active:scale-95 px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300"
               >
                 Start Planning Free
@@ -41,7 +48,7 @@ const HomePage = ({ onSignIn }) => {
             <div className="mt-12 flex items-center gap-4 text-sm text-slate-500 font-medium">
               <div className="flex -space-x-3">
                 {[1, 2, 3, 4].map(i => (
-                  <div key={i} className="w-10 h-10 rounded-full border-2 border-white bg-slate-200"></div>
+                  <div key={i} className={`w-10 h-10 rounded-full border-2 border-white bg-slate-200`}></div>
                 ))}
               </div>
               <p><span className="text-slate-900 font-bold">10k+</span> planners already using EventManager</p>
@@ -125,7 +132,7 @@ const HomePage = ({ onSignIn }) => {
           <h2 className="text-4xl md:text-5xl font-extrabold text-white mb-8 leading-tight">Ready to launch your <br /> next big event?</h2>
           <div className="flex justify-center gap-6">
             <button
-              onClick={onSignIn}
+              onClick={handleGetStarted}
               className="bg-white text-slate-900 px-10 py-4 rounded-2xl font-bold text-lg hover:bg-blue-50 transition-colors duration-300"
             >
               Get Started Now

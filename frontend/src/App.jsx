@@ -1,31 +1,28 @@
-import React, { useState } from 'react';
+import React from 'react';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import HomePage from './components/HomePage';
 import AuthPage from './components/AuthPage';
+import UserDashboard from './components/UserDashboard';
+import AuthService from './services/authService';
 import './App.css';
 
 function App() {
-  const [view, setView] = useState('home');
-
   return (
-    <div>
-      {view === 'home' ? (
-        <div className="relative">
-          <HomePage onSignIn={() => setView('auth')} />
-          <div className="fixed bottom-10 right-10 z-[9999]">
-            <button
-              onClick={() => setView('auth')}
-              className="px-6 py-3 bg-blue-600 text-white font-bold rounded-full shadow-2xl hover:bg-blue-700 transition-all hover:scale-105 active:scale-95"
-            >
-              Demo Login Page
-            </button>
-          </div>
-        </div>
-      ) : (
-        <div className="relative">
-          <AuthPage onHome={() => setView('home')} />
-        </div>
-      )}
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/auth" element={<AuthPage />} />
+        <Route
+          path="/dashboard"
+          element={AuthService.getCurrentUser() ? <UserDashboard /> : <Navigate to="/auth" />}
+        />
+      </Routes>
+    </Router>
   );
 }
 

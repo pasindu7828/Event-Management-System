@@ -1,6 +1,15 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import AuthService from '../services/authService';
 
-const Navbar = ({ onSignIn }) => {
+const Navbar = () => {
+  const [currentUser, setCurrentUser] = useState(undefined);
+
+  useEffect(() => {
+    const user = AuthService.getCurrentUser();
+    setCurrentUser(user);
+  }, []);
+
   return (
     <nav className="sticky top-0 z-50 bg-blue-700/80 backdrop-blur-md border-b border-blue-500/30 px-6 py-4 shadow-xl">
       <div className="max-w-7xl mx-auto flex justify-between items-center">
@@ -21,18 +30,20 @@ const Navbar = ({ onSignIn }) => {
         </div>
 
         <div className="flex gap-4 items-center">
-          <button
-            onClick={onSignIn}
-            className="text-blue-50 hover:text-white font-semibold transition duration-300"
-          >
-            Sign In
-          </button>
-          <button
-            onClick={onSignIn}
-            className="bg-white text-blue-700 hover:bg-blue-50 hover:scale-105 active:scale-95 shadow-lg px-6 py-2.5 rounded-full font-bold transition-all duration-300"
-          >
-            Get Started
-          </button>
+          {currentUser ? (
+            <Link to="/dashboard" className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-lg">
+                <span className="text-blue-700 font-bold text-lg">{currentUser.user.firstName.charAt(0)}</span>
+              </div>
+            </Link>
+          ) : (
+            <Link
+              to="/auth"
+              className="bg-white text-blue-700 hover:bg-blue-50 hover:scale-105 active:scale-95 shadow-lg px-6 py-2.5 rounded-full font-bold transition-all duration-300"
+            >
+              Get Started
+            </Link>
+          )}
         </div>
       </div>
     </nav>
