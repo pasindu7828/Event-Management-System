@@ -1,5 +1,7 @@
 import User from "../models/User.js";
 import generateToken from "../utils/generateToken.js";
+import crypto from "crypto";
+import sendEmail from "../utils/sendEmail.js";
 
 // REGISTER
 export const registerUser = async (req, res) => {
@@ -13,6 +15,7 @@ export const registerUser = async (req, res) => {
       confirmPassword,
       role,
       studentId,
+      faculty,
     } = req.body;
 
     // Basic required fields
@@ -42,6 +45,16 @@ export const registerUser = async (req, res) => {
         .json({ message: "Student ID is required for this role" });
     }
 
+    // Require faculty for student & organizer
+    if (
+      (role === "student" || role === "organizer") &&
+      !faculty
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Faculty is required for this role" });
+    }
+
     // Check email already exists
     const userExists = await User.findOne({ email });
     if (userExists) {
@@ -69,14 +82,32 @@ export const registerUser = async (req, res) => {
 
     if (role === "student" || role === "organizer") {
       userData.studentId = studentId;
+      userData.faculty = faculty;
     }
+
+    // Generate verification token
+    const verificationToken = crypto.randomBytes(32).toString("hex");
+    userData.verificationToken = verificationToken;
+    userData.isVerified = false; // Add this field to User model
 
     const user = await User.create(userData);
 
+    // Prepare verification URL
+    const verificationUrl = `${req.protocol}://${req.get("host")}/api/v1/auth/verify-email/${verificationToken}`;
+
+    // Send verification email
+    await sendEmail({
+      to: user.email,
+      subject: "Verify Your Email",
+      text: `Hi ${user.firstName}, please verify your email by clicking this link: ${verificationUrl}`,
+      html: `<p>Hi ${user.firstName},</p>
+             <p>Please verify your email by clicking the link below:</p>
+             <a href="${verificationUrl}">Verify Email</a>`,
+    });
 
     res.status(201).json({
       success: true,
-      message: "User registered successfully",
+      message: "User registered successfully. Please check your email to verify your account.",
       user: {
         id: user._id,
         firstName: user.firstName,
@@ -85,6 +116,7 @@ export const registerUser = async (req, res) => {
         email: user.email,
         role: user.role,
         studentId: user.studentId,
+        faculty: user.faculty,
       },
       token: generateToken(user._id),
     });
@@ -132,6 +164,10 @@ export const loginUser = async (req, res) => {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
+    if (!user.isVerified) {
+      return res.status(401).json({ message: "Please verify your email first" });
+    }
+
     res.status(200).json({
       success: true,
       message: "Login successful",
@@ -143,6 +179,7 @@ export const loginUser = async (req, res) => {
         email: user.email,
         role: user.role,
         studentId: user.studentId,
+        faculty: user.faculty,
       },
       token: generateToken(user._id),
     });
@@ -192,6 +229,95 @@ export const logoutUser = (req, res) => {
     success: true,
     message: "Logged out successfully",
   });
+};
+
+// UPDATE PHONE NUMBER
+export const updateUserProfile = async (req, res) => {
+  try {
+    const userId = req.user._id; // assuming user is authenticated
+    const { phone } = req.body;
+
+    if (!phone) {
+      return res.status(400).json({ message: "Phone number is required" });
+    }
+
+    // Validate phone number format
+    const phoneRegex = /^\d{10}$/;
+    if (!phoneRegex.test(phone)) {
+      return res.status(400).json({ message: "Invalid phone number format" });
+    }
+
+    // Update only the phone number
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { phone },
+      { new: true, runValidators: true } // runValidators ensures phone regex is checked
+    ).select("-password");
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Phone number updated successfully",
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.error("Update Profile Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error while updating profile",
+      error: error.message,
+    });
+  }
+};
+
+// VIEW PROFILE
+export const viewUserProfile = async (req, res) => {
+  try {
+    const userId = req.user._id; // get user from auth middleware
+
+    const user = await User.findById(userId).select("-password");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      user,
+    });
+  } catch (error) {
+    console.error("View Profile Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error while fetching profile",
+      error: error.message,
+    });
+  }
+};
+
+//verify email
+export const verifyEmail = async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    const user = await User.findOne({ verificationToken: token });
+
+    if (!user) {
+      return res.status(400).json({ message: "Invalid or expired verification token" });
+    }
+
+    user.isVerified = true;
+    user.verificationToken = undefined; // remove token
+    await user.save();
+
+    res.status(200).json({ success: true, message: "Email verified successfully!" });
+  } catch (error) {
+    console.error("Email Verification Error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
 };
 
 

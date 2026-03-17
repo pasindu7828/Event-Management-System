@@ -9,6 +9,9 @@ import {
   getAllStudents,
   getAllOrganizers,
   logoutUser,
+  updateUserProfile,
+  viewUserProfile,
+  verifyEmail
 } from "../controllers/authController.js";
 
 const router = express.Router();
@@ -19,6 +22,9 @@ router.post("/register", registerUser);
 // Login route
 router.post("/login", loginUser);
 
+// Email verification route
+router.get("/verify-email/:token", verifyEmail);
+
 //get all students - admin
 router.get("/students", requiredSignIn, isAdmin, getAllStudents);
 
@@ -28,5 +34,10 @@ router.get("/organizers", requiredSignIn, isAdmin, getAllOrganizers);
 //logout function 
 router.post("/logout", requiredSignIn, logoutUser);
 
+//update user profile
+router.put("/update-profile", requiredSignIn, updateUserProfile);
+
+// view user profile
+router.get("/profile", requiredSignIn, viewUserProfile);
 
 export default router;

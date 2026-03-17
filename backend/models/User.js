@@ -55,18 +55,43 @@ const userSchema = new mongoose.Schema(
       trim: true,
     },
 
+    faculty: {
+      type: String,
+      required: function () {
+        return this.role === "student" || this.role === "organizer";
+      },
+      trim: true,
+      enum: [
+        "Computing",
+        "Engineering",
+        "Business",
+        "Humanities",
+        "Science",
+        "Other",
+      ], // optional but recommended
+    },
+
     role: {
       type: String,
       enum: ["student", "organizer", "admin"],
       default: "student",
     },
+
+    isVerified: {
+      type: Boolean,
+      default: false
+    },
+
+    verificationToken: {
+      type: String,
+    }
   },
   { timestamps: true }
 );
 
 // Hash password before save
-userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
+userSchema.pre("save", async function () {
+  if (!this.isModified("password")) return ;
 
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
