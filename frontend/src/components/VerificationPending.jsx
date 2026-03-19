@@ -3,7 +3,9 @@ import { useLocation, Link } from 'react-router-dom';
 
 const VerificationPending = () => {
     const location = useLocation();
-    const email = location.state?.email || 'your email';
+    const userStr = localStorage.getItem('user');
+    const userObj = userStr ? JSON.parse(userStr) : null;
+    const email = location.state?.email || userObj?.user?.email || 'your email';
     const message = location.state?.message || 'Registration successful!';
 
     return (
@@ -36,7 +38,7 @@ const VerificationPending = () => {
                     </div>
 
                     <Link 
-                        to="/login" 
+                        to="/auth" 
                         className="block w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
                     >
                         Go to Login

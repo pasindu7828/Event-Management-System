@@ -453,24 +453,14 @@ const AuthPage = ({ onHome: onHomeProp, initialMode = 'login' }) => {
         if (response.data.success) {
             // Store user data using the service
             AuthService.setUserData(response.data);
-            
-            // Redirect based on verification status
-            if (response.data.user?.isVerified) {
-                window.location.href = '/dashboard';
-            } else {
-                navigate('/verification-pending', { 
-                    state: { email: response.data.user.email }
-                });
-            }
+            window.location.href = '/';
         }
     } catch (err) {
         const errorMsg = err.response?.data?.message;
         
         if (errorMsg === "Please verify your email first") {
-            // Redirect to verification pending with email
-            navigate('/verification-pending', { 
-                state: { email: loginEmail }
-            });
+            // Keep user on the home page but they'll see their status in Navbar (if verified/not)
+            window.location.href = '/';
         } else {
             setError(errorMsg || 'Login failed');
         }

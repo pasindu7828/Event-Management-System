@@ -20,9 +20,29 @@ const resendVerification = (email) => {
     return axios.post(`${API_URL}/resend-verification`, { email });
 };
 
+// NEW: Store user data after login
+const setUserData = (userData) => {
+    localStorage.setItem('user', JSON.stringify(userData));
+    if (userData.token) {
+        localStorage.setItem('token', userData.token);
+    }
+    // Notify components of auth change
+    window.dispatchEvent(new Event('authChange'));
+};
+
 const logout = () => {
+    const token = getAuthToken();
+    if (token) {
+        axios.post(`${API_URL}/logout`, {}, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }).catch(err => console.error("Logout API failed", err));
+    }
     localStorage.removeItem('user');
     localStorage.removeItem('token');
+    // Notify components of auth change
+    window.dispatchEvent(new Event('authChange'));
 };
 
 // FIXED: Handle case when no user in localStorage
@@ -54,12 +74,18 @@ const isEmailVerified = () => {
     return user?.user?.isVerified === true;
 };
 
-// NEW: Store user data after login
-const setUserData = (userData) => {
-    localStorage.setItem('user', JSON.stringify(userData));
-    if (userData.token) {
-        localStorage.setItem('token', userData.token);
-    }
+const getProfile = () => {
+    const token = getAuthToken();
+    return axios.get(`${API_URL}/profile`, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
+};
+
+const updateProfile = (profileData) => {
+    const token = getAuthToken();
+    return axios.put(`${API_URL}/update-profile`, profileData, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
 };
 
 export default {
@@ -71,6 +97,8 @@ export default {
     getCurrentUser,
     isAuthenticated,
     getAuthToken,
-    isEmailVerified,    // Add this
-    setUserData,        // Add this
+    isEmailVerified,
+    setUserData,
+    getProfile,
+    updateProfile,
 };

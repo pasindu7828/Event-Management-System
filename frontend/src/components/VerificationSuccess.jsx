@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import AuthService from '../services/authService';
 
@@ -7,9 +7,13 @@ const VerificationSuccess = () => {
     const [message, setMessage] = useState('');
     const { token } = useParams();
     const navigate = useNavigate();
+    const hasChecked = useRef(false);
 
     useEffect(() => {
         const verifyEmail = async () => {
+            if (hasChecked.current) return;
+            hasChecked.current = true;
+            
             try {
                 const response = await AuthService.verifyEmail(token);
                 
@@ -19,7 +23,7 @@ const VerificationSuccess = () => {
                     
                     // Auto redirect to login after 3 seconds
                     setTimeout(() => {
-                        navigate('/login');
+                        navigate('/auth');
                     }, 3000);
                 }
             } catch (error) {
@@ -59,7 +63,7 @@ const VerificationSuccess = () => {
                         <p className="text-gray-600 mb-6">{message}</p>
                         <p className="text-sm text-gray-500 mb-4">Redirecting to login in 3 seconds...</p>
                         <Link 
-                            to="/login" 
+                            to="/auth" 
                             className="block w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
                         >
                             Go to Login Now
@@ -77,7 +81,7 @@ const VerificationSuccess = () => {
                         <h2 className="text-2xl font-bold text-gray-800 mb-2">Verification Failed</h2>
                         <p className="text-gray-600 mb-6">{message}</p>
                         <Link 
-                            to="/login" 
+                            to="/auth" 
                             className="block w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
                         >
                             Back to Login

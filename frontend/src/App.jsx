@@ -8,6 +8,7 @@ import {
 import HomePage from './components/HomePage';
 import AuthPage from './components/AuthPage';
 import UserDashboard from './components/UserDashboard';
+import UserProfile from './components/UserProfile';
 import VerificationPending from './components/VerificationPending';
 import VerificationSuccess from './components/VerificationSuccess';
 import AuthService from './services/authService';
@@ -22,18 +23,26 @@ const ProtectedRoute = ({ children }) => {
     return <Navigate to="/auth" />;
   }
   
-  // Check if email is verified (if your user object has this info)
-  // You might need to add this to your user object in localStorage
-  if (user.user && !user.user.isVerified) {
-    // Logged in but not verified - redirect to verification pending
-    return <Navigate to="/verification-pending" state={{ email: user.user.email }} />;
-  }
-  
   // All good - show the protected component
   return children;
 };
 
 function App() {
+  const [user, setUser] = React.useState(AuthService.getCurrentUser());
+
+  // Listen for auth changes globally
+  React.useEffect(() => {
+    const handleAuthChange = () => {
+      setUser(AuthService.getCurrentUser());
+    };
+    window.addEventListener('authChange', handleAuthChange);
+    window.addEventListener('storage', handleAuthChange);
+    return () => {
+      window.removeEventListener('authChange', handleAuthChange);
+      window.removeEventListener('storage', handleAuthChange);
+    };
+  }, []);
+
   return (
     <Router>
       <Routes>
@@ -51,6 +60,14 @@ function App() {
           element={
             <ProtectedRoute>
               <UserDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <UserProfile />
             </ProtectedRoute>
           }
         />
