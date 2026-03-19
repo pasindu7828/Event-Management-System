@@ -27,6 +27,16 @@ const eventRegistrationSchema = new mongoose.Schema(
       default: "card",
       trim: true,
     },
+    paymentBankName: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    paymentCardLast4: {
+      type: String,
+      default: "",
+      trim: true,
+    },
     paymentStatus: {
       type: String,
       enum: ["paid"],
