@@ -53,6 +53,7 @@ const Navbar = () => {
           <a href="#" className="hover:text-white transition-colors duration-300">Events</a>
           <a href="#" className="hover:text-white transition-colors duration-300">Planning</a>
           <a href="#" className="hover:text-white transition-colors duration-300">Services</a>
+          <Link to="/create-event" className="hover:text-white transition-colors duration-300">Event Creation</Link>
         </div>
 
         <div className="flex gap-4 items-center">
