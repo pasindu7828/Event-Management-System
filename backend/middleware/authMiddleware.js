@@ -36,6 +36,14 @@ export const isOrganizer = (req, res, next) => {
   next();
 };
 
+// Organizer or admin role check
+export const isOrganizerOrAdmin = (req, res, next) => {
+  if (!["organizer", "admin"].includes(req.user.role)) {
+    return res.status(403).json({ message: "Organizer or admin access required" });
+  }
+  next();
+};
+
 // Student role check
 export const isStudent = (req, res, next) => {
   if (req.user.role !== "student") {
