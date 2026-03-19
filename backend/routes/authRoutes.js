@@ -11,7 +11,9 @@ import {
   logoutUser,
   updateUserProfile,
   viewUserProfile,
-  verifyEmail
+  verifyEmail,
+  getAllUsers,
+  deleteUser
 } from "../controllers/authController.js";
 
 const router = express.Router();
@@ -30,6 +32,12 @@ router.get("/students", requiredSignIn, isAdmin, getAllStudents);
 
 //get all organizers - admin
 router.get("/organizers", requiredSignIn, isAdmin, getAllOrganizers);
+
+//get all users - admin
+router.get("/all-users", requiredSignIn, isAdmin, getAllUsers);
+
+//delete user - admin
+router.delete("/delete-user/:id", requiredSignIn, isAdmin, deleteUser);
 
 //logout function 
 router.post("/logout", requiredSignIn, logoutUser);

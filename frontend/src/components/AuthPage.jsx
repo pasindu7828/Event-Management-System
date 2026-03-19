@@ -394,7 +394,6 @@ const RegisterView = ({
                     <select className="w-full bg-[#f4f8f7] border-none py-3.5 px-5 rounded-[18px] outline-none text-sm text-slate-700 focus:ring-2 focus:ring-blue-600/10 transition-all" value={registerRole} onChange={(e) => setRegisterRole(e.target.value)}>
                         <option value="student">Student</option>
                         <option value="organizer">Organizer</option>
-                        <option value="admin">Admin</option>
                     </select>
 
                     <div className="pt-4 flex flex-col items-center">
@@ -453,7 +452,13 @@ const AuthPage = ({ onHome: onHomeProp, initialMode = 'login' }) => {
         if (response.data.success) {
             // Store user data using the service
             AuthService.setUserData(response.data);
-            window.location.href = '/';
+            
+            // Redirect based on role
+            if (response.data.user?.role === 'admin') {
+                window.location.href = '/admin/dashboard';
+            } else {
+                window.location.href = '/';
+            }
         }
     } catch (err) {
         const errorMsg = err.response?.data?.message;

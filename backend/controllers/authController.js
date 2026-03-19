@@ -226,6 +226,60 @@ export const getAllOrganizers = async (req, res) => {
   }
 };
 
+// GET ALL USERS - ADMIN
+export const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find({}).select("-password").sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: users.length,
+      users,
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      message: "Failed to fetch users",
+      error: error.message 
+    });
+  }
+};
+
+// DELETE USER - ADMIN
+export const deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Prevent self-deletion
+    if (id === req.user._id.toString()) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "You cannot terminate your own administrative session" 
+      });
+    }
+
+    const user = await User.findByIdAndDelete(id);
+
+    if (!user) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Target user not found" 
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "User account terminated successfully",
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      message: "Operation failed",
+      error: error.message 
+    });
+  }
+};
+
 //logout function
 export const logoutUser = (req, res) => {
   res.status(200).json({
@@ -322,5 +376,3 @@ export const verifyEmail = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
-

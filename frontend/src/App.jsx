@@ -12,15 +12,25 @@ import UserProfile from './components/UserProfile';
 import VerificationPending from './components/VerificationPending';
 import VerificationSuccess from './components/VerificationSuccess';
 import AuthService from './services/authService';
+import AdminDashboard from './components/AdminDashboard';
+import AdminUsers from './components/AdminUsers';
+import AdminEvents from './components/AdminEvents';
+import AdminAnnouncements from './components/AdminAnnouncements';
+import AdminSettings from './components/AdminSettings';
 import './App.css';
 
 // Protected Route Component
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = ({ children, adminOnly = false }) => {
   const user = AuthService.getCurrentUser();
   
   if (!user) {
     // Not logged in - redirect to auth
     return <Navigate to="/auth" />;
+  }
+  
+  // Role check for admin routes
+  if (adminOnly && user.user?.role !== 'admin') {
+    return <Navigate to="/" />;
   }
   
   // All good - show the protected component
@@ -68,6 +78,47 @@ function App() {
           element={
             <ProtectedRoute>
               <UserProfile />
+            </ProtectedRoute>
+          }
+        />
+        
+        <Route
+          path="/admin/dashboard"
+          element={
+            <ProtectedRoute adminOnly={true}>
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/users"
+          element={
+            <ProtectedRoute adminOnly={true}>
+              <AdminUsers />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/events"
+          element={
+            <ProtectedRoute adminOnly={true}>
+              <AdminEvents />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/announcements"
+          element={
+            <ProtectedRoute adminOnly={true}>
+              <AdminAnnouncements />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/settings"
+          element={
+            <ProtectedRoute adminOnly={true}>
+              <AdminSettings />
             </ProtectedRoute>
           }
         />

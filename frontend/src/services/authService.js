@@ -74,6 +74,13 @@ const isEmailVerified = () => {
     return user?.user?.isVerified === true;
 };
 
+const getAllUsers = () => {
+    const token = getAuthToken();
+    return axios.get(`${API_URL}/all-users`, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
+};
+
 const getProfile = () => {
     const token = getAuthToken();
     return axios.get(`${API_URL}/profile`, {
@@ -84,6 +91,13 @@ const getProfile = () => {
 const updateProfile = (profileData) => {
     const token = getAuthToken();
     return axios.put(`${API_URL}/update-profile`, profileData, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
+};
+
+const deleteUser = (id) => {
+    const token = getAuthToken();
+    return axios.delete(`${API_URL}/delete-user/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
     });
 };
@@ -101,4 +115,6 @@ export default {
     setUserData,
     getProfile,
     updateProfile,
+    getAllUsers,
+    deleteUser,
 };
