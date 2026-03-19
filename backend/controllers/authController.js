@@ -93,7 +93,10 @@ export const registerUser = async (req, res) => {
     const user = await User.create(userData);
 
     // Prepare verification URL
-    const verificationUrl = `${req.protocol}://${req.get("host")}/api/v1/auth/verify-email/${verificationToken}`;
+    //const verificationUrl = `${req.protocol}://${req.get("host")}/api/v1/auth/verify-email/${verificationToken}`;
+
+    const verificationUrl = `http://localhost:3000/verify-email/${verificationToken}`;
+
 
     // Send verification email
     await sendEmail({

@@ -319,6 +319,8 @@ const RegisterView = ({
     setRegisterRole,
     registerStudentId,
     setRegisterStudentId,
+    registerFaculty,        // ← ADD THIS
+    setRegisterFaculty,
     error,
     loading
 }) => (
@@ -374,6 +376,21 @@ const RegisterView = ({
                     <input type="password" placeholder="Password" className="w-full bg-[#f4f8f7] border-none py-3.5 px-5 rounded-[18px] outline-none text-sm text-slate-700 placeholder:text-slate-400 focus:ring-2 focus:ring-blue-600/10 transition-all" value={registerPassword} onChange={(e) => setRegisterPassword(e.target.value)} />
                     <input type="password" placeholder="Confirm Password" className="w-full bg-[#f4f8f7] border-none py-3.5 px-5 rounded-[18px] outline-none text-sm text-slate-700 placeholder:text-slate-400 focus:ring-2 focus:ring-blue-600/10 transition-all" value={registerConfirmPassword} onChange={(e) => setRegisterConfirmPassword(e.target.value)} />
                     <input type="text" placeholder="Student ID" className="w-full bg-[#f4f8f7] border-none py-3.5 px-5 rounded-[18px] outline-none text-sm text-slate-700 placeholder:text-slate-400 focus:ring-2 focus:ring-blue-600/10 transition-all" value={registerStudentId} onChange={(e) => setRegisterStudentId(e.target.value)} />
+                    {/* ← ADD FACULTY FIELD HERE */}
+                    <select 
+                        className="w-full bg-[#f4f8f7] border-none py-3.5 px-5 rounded-[18px] outline-none text-sm text-slate-700 focus:ring-2 focus:ring-blue-600/10 transition-all"
+                        value={registerFaculty} 
+                        onChange={(e) => setRegisterFaculty(e.target.value)}
+                        required={registerRole === 'student' || registerRole === 'organizer'}
+                    >
+                        <option value="">Select Faculty</option>
+                        <option value="Computing">Computing</option>
+                        <option value="Engineering">Engineering</option>
+                        <option value="Business">Business</option>
+                        <option value="Humanities">Humanities</option>
+                        <option value="Science">Science</option>
+                        <option value="Other">Other</option>
+                    </select>
                     <select className="w-full bg-[#f4f8f7] border-none py-3.5 px-5 rounded-[18px] outline-none text-sm text-slate-700 focus:ring-2 focus:ring-blue-600/10 transition-all" value={registerRole} onChange={(e) => setRegisterRole(e.target.value)}>
                         <option value="student">Student</option>
                         <option value="organizer">Organizer</option>
@@ -417,50 +434,95 @@ const AuthPage = ({ onHome: onHomeProp, initialMode = 'login' }) => {
     const [registerConfirmPassword, setRegisterConfirmPassword] = useState('');
     const [registerRole, setRegisterRole] = useState('student');
     const [registerStudentId, setRegisterStudentId] = useState('');
+    const [registerFaculty, setRegisterFaculty] = useState(''); 
 
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
     const handleLogin = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        setError('');
-        try {
-            const response = await AuthService.login({ email: loginEmail, password: loginPassword });
-            if (response.data.token) {
-                localStorage.setItem('user', JSON.stringify(response.data));
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    
+    try {
+        const response = await AuthService.login({ 
+            email: loginEmail, 
+            password: loginPassword 
+        });
+        
+        if (response.data.success) {
+            // Store user data using the service
+            AuthService.setUserData(response.data);
+            
+            // Redirect based on verification status
+            if (response.data.user?.isVerified) {
                 window.location.href = '/dashboard';
+            } else {
+                navigate('/verification-pending', { 
+                    state: { email: response.data.user.email }
+                });
             }
-        } catch (err) {
-            setError(err.response?.data?.message || 'Login failed');
         }
+    } catch (err) {
+        const errorMsg = err.response?.data?.message;
+        
+        if (errorMsg === "Please verify your email first") {
+            // Redirect to verification pending with email
+            navigate('/verification-pending', { 
+                state: { email: loginEmail }
+            });
+        } else {
+            setError(errorMsg || 'Login failed');
+        }
+    } finally {
         setLoading(false);
+    }
     };
 
     const handleRegister = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        setError('');
-        const userData = {
-            firstName: registerFirstName,
-            lastName: registerLastName,
-            phone: registerPhone,
-            email: registerEmail,
-            password: registerPassword,
-            confirmPassword: registerConfirmPassword,
-            role: registerRole,
-            studentId: registerStudentId
-        };
-        try {
-            const response = await AuthService.register(userData);
-            if (response.data.token) {
-                localStorage.setItem('user', JSON.stringify(response.data));
-                window.location.href = '/dashboard';
-            }
-        } catch (err) {
-            setError(err.response?.data?.message || 'Registration failed');
-        }
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    
+    // Validation
+    if (registerPassword !== registerConfirmPassword) {
+        setError("Passwords do not match");
         setLoading(false);
+        return;
+    }
+
+    const userData = {
+        firstName: registerFirstName,
+        lastName: registerLastName,
+        phone: registerPhone,
+        email: registerEmail,
+        password: registerPassword,
+        confirmPassword: registerConfirmPassword,
+        role: registerRole,
+        studentId: registerStudentId,
+        faculty: "Computing" // Add this if needed
+    };
+
+    try {
+        const response = await AuthService.register(userData);
+        
+        if (response.data.success) {
+            // DON'T store user or token automatically
+            // DON'T redirect to dashboard
+            
+            // Show success message and redirect to verification pending page
+            navigate('/verification-pending', { 
+                state: { 
+                    email: registerEmail,
+                    message: response.data.message 
+                } 
+            });
+        }
+    } catch (err) {
+        setError(err.response?.data?.message || 'Registration failed');
+    } finally {
+        setLoading(false);
+    }
     };
 
     const loginViewProps = {
@@ -481,6 +543,7 @@ const AuthPage = ({ onHome: onHomeProp, initialMode = 'login' }) => {
         registerConfirmPassword, setRegisterConfirmPassword,
         registerRole, setRegisterRole,
         registerStudentId, setRegisterStudentId,
+        registerFaculty, setRegisterFaculty,
         error, loading
     };
 
