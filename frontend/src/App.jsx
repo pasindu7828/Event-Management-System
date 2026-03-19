@@ -18,6 +18,9 @@ import AdminEvents from './components/AdminEvents';
 import AdminAnnouncements from './components/AdminAnnouncements';
 import AdminSettings from './components/AdminSettings';
 import CreateEventPage from './components/Createeventpage';
+import MyEventsPage from './components/MyEventsPage';
+import EventsPage from './components/EventsPage';
+import EventPaymentPage from './components/EventPaymentPage';
 import './App.css';
 
 // Protected Route Component
@@ -60,6 +63,8 @@ function App() {
         {/* Public Routes */}
         <Route path="/" element={<HomePage />} />
         <Route path="/auth" element={<AuthPage />} />
+        <Route path="/events" element={<EventsPage />} />
+        <Route path="/events/:eventId/payment" element={<EventPaymentPage />} />
         
         {/* Verification Routes */}
         <Route path="/verification-pending" element={<VerificationPending />} />
@@ -87,6 +92,14 @@ function App() {
           element={
             <ProtectedRoute>
               <CreateEventPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/my-events"
+          element={
+            <ProtectedRoute>
+              <MyEventsPage />
             </ProtectedRoute>
           }
         />

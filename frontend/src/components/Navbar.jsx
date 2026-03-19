@@ -50,7 +50,8 @@ const Navbar = () => {
 
         <div className="hidden md:flex gap-8 text-blue-50 font-medium">
           <Link to="/" className="hover:text-white transition-colors duration-300 font-semibold">Home</Link>
-          <a href="#" className="hover:text-white transition-colors duration-300">Events</a>
+          <Link to="/events" className="hover:text-white transition-colors duration-300">Events</Link>
+          {/* <Link to="/my-events" className="hover:text-white transition-colors duration-300">My Events</Link> */}
           <a href="#" className="hover:text-white transition-colors duration-300">Planning</a>
           <a href="#" className="hover:text-white transition-colors duration-300">Services</a>
           <Link to="/create-event" className="hover:text-white transition-colors duration-300">Event Creation</Link>

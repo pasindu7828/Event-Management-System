@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import EventService from '../services/eventService';
 
 // ─────────────────────────────────────────────
@@ -244,8 +244,7 @@ const CreateEventPage = ({ onBack }) => {
                 visibility: form.visibility,
                 tickets: form.tickets,
                 tags: form.tags,
-                // File upload is not implemented yet on backend.
-                coverImageUrl: '',
+                coverImage: form.coverImage,
             };
 
             const response = await EventService.createEvent(payload);
@@ -324,6 +323,12 @@ const CreateEventPage = ({ onBack }) => {
 
                     {/* Right — role badge */}
                     <div className="flex items-center gap-3">
+                        <Link
+                            to="/my-events"
+                            className="px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
+                        >
+                            My Events
+                        </Link>
                         <span className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest ${role === 'admin' ? 'bg-indigo-100 text-indigo-600' : 'bg-blue-100 text-blue-600'}`}>
                             {role || 'organizer'}
                         </span>
