@@ -17,6 +17,7 @@ import AdminUsers from './components/AdminUsers';
 import AdminEvents from './components/AdminEvents';
 import AdminAnnouncements from './components/AdminAnnouncements';
 import AdminSettings from './components/AdminSettings';
+import CreateEventPage from './components/Createeventpage';
 import './App.css';
 
 // Protected Route Component
@@ -78,6 +79,14 @@ function App() {
           element={
             <ProtectedRoute>
               <UserProfile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/create-event"
+          element={
+            <ProtectedRoute>
+              <CreateEventPage />
             </ProtectedRoute>
           }
         />
