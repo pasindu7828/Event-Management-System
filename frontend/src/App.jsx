@@ -17,6 +17,7 @@ import AdminUsers from './components/AdminUsers';
 import AdminEvents from './components/AdminEvents';
 import AdminAnnouncements from './components/AdminAnnouncements';
 import AdminSettings from './components/AdminSettings';
+import AdminPaymentSlips from './components/AdminPaymentSlips';
 import CreateEventPage from './components/Createeventpage';
 import MyEventsPage from './components/MyEventsPage';
 import EventsPage from './components/EventsPage';
@@ -141,6 +142,14 @@ function App() {
           element={
             <ProtectedRoute adminOnly={true}>
               <AdminSettings />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/payment-slips"
+          element={
+            <ProtectedRoute adminOnly={true}>
+              <AdminPaymentSlips />
             </ProtectedRoute>
           }
         />

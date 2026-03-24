@@ -9,6 +9,7 @@ import {
   getPaymentSlipDetails,
   updatePaymentSlip,
   cancelPaymentSlip,
+  getAllPaymentSlips,
   getEventPaymentSlips,
   getEventAttendees,
   approvePaymentSlip,
@@ -57,20 +58,47 @@ const upload = multer({
   fileFilter: fileFilter,
 });
 
-// ==================== STUDENT ROUTES ====================
+// ==================== NAMED ROUTES FIRST (avoid /:id conflicts) ====================
+
+// STUDENT: Submit a new payment slip
 router.post("/submit", requiredSignIn, isStudent, upload.single("slipImage"), submitPaymentSlip);
+
+// STUDENT: Get all my payment slip registrations
 router.get("/my-registrations", requiredSignIn, isStudent, getMyPaymentSlips);
+
+// ORGANIZER/ADMIN: Check-in via QR
+router.post("/check-in", requiredSignIn, isOrganizerOrAdmin, checkInAttendee);
+
+// ADMIN: Get ALL payment slips cross all events
+router.get("/all", requiredSignIn, isOrganizerOrAdmin, getAllPaymentSlips);
+
+// ORGANIZER/ADMIN: Get all slips for a specific event
+router.get("/event/:eventId", requiredSignIn, isOrganizerOrAdmin, getEventPaymentSlips);
+
+// ORGANIZER/ADMIN: Get attendees (approved) for a specific event
+router.get("/event/:eventId/attendees", requiredSignIn, isOrganizerOrAdmin, getEventAttendees);
+
+// ==================== WILDCARD ROUTES LAST ====================
+
+// STUDENT: Get single payment slip detail
 router.get("/:id", requiredSignIn, isStudent, getPaymentSlipDetails);
+
+// STUDENT: Update a pending payment slip
 router.put("/:id", requiredSignIn, isStudent, upload.single("slipImage"), updatePaymentSlip);
+
+// STUDENT: Cancel (delete) a pending payment slip
 router.delete("/:id", requiredSignIn, isStudent, cancelPaymentSlip);
+
+// STUDENT: Download QR code for approved slip
 router.get("/:id/download-qr", requiredSignIn, isStudent, downloadQRCode);
 
-// ==================== ORGANIZER/ADMIN ROUTES ====================
-router.get("/event/:eventId", requiredSignIn, isOrganizerOrAdmin, getEventPaymentSlips);
-router.get("/event/:eventId/attendees", requiredSignIn, isOrganizerOrAdmin, getEventAttendees);
+// ORGANIZER/ADMIN: Approve slip and generate QR
 router.put("/:id/approve", requiredSignIn, isOrganizerOrAdmin, approvePaymentSlip);
+
+// ORGANIZER/ADMIN: Reject slip
 router.put("/:id/reject", requiredSignIn, isOrganizerOrAdmin, rejectPaymentSlip);
+
+// ORGANIZER/ADMIN: Regenerate QR code
 router.put("/:id/regenerate-qr", requiredSignIn, isOrganizerOrAdmin, regenerateQRCode);
-router.post("/check-in", requiredSignIn, isOrganizerOrAdmin, checkInAttendee);
 
 export default router;

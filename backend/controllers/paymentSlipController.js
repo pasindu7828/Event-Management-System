@@ -314,6 +314,55 @@ export const cancelPaymentSlip = async (req, res) => {
 
 // ==================== ORGANIZER/ADMIN FUNCTIONS ====================
 
+// ADMIN: Get ALL payment slips across all events (admin dashboard)
+export const getAllPaymentSlips = async (req, res) => {
+  try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ 
+        success: false,
+        message: "Admin access required" 
+      });
+    }
+
+    const { status, page = 1, limit = 100 } = req.query;
+    const filter = {};
+    if (status && ["pending", "approved", "rejected"].includes(status)) {
+      filter.status = status;
+    }
+
+    const paymentSlips = await PaymentSlip.find(filter)
+      .populate("eventId", "title startDate endDate coverImageUrl")
+      .populate("studentId", "firstName lastName email studentId faculty phone")
+      .populate("reviewedBy", "firstName lastName email")
+      .sort({ createdAt: -1 })
+      .limit(Number(limit))
+      .skip((Number(page) - 1) * Number(limit));
+
+    const total = await PaymentSlip.countDocuments(filter);
+    const stats = {
+      total: await PaymentSlip.countDocuments({}),
+      pending: await PaymentSlip.countDocuments({ status: "pending" }),
+      approved: await PaymentSlip.countDocuments({ status: "approved" }),
+      rejected: await PaymentSlip.countDocuments({ status: "rejected" }),
+    };
+
+    res.status(200).json({
+      success: true,
+      count: paymentSlips.length,
+      total,
+      stats,
+      data: paymentSlips
+    });
+  } catch (error) {
+    console.error("Error fetching all payment slips:", error);
+    res.status(500).json({ 
+      success: false,
+      message: "Server error", 
+      error: error.message 
+    });
+  }
+};
+
 // ADMIN/ORGANIZER: Get all payment slips for an event
 export const getEventPaymentSlips = async (req, res) => {
   try {
