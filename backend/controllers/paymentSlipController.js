@@ -24,25 +24,25 @@ export const submitPaymentSlip = async (req, res) => {
     // Check if event exists
     const event = await Event.findById(eventId);
     if (!event) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         success: false,
-        message: "Event not found" 
+        message: "Event not found"
       });
     }
 
     // Check if event has passed
     if (new Date(event.startDate) < new Date()) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        message: "Cannot register for past events" 
+        message: "Cannot register for past events"
       });
     }
 
     // Check if deadline has passed
     if (event.deadline && new Date(event.deadline) < new Date()) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        message: "Registration deadline has passed" 
+        message: "Registration deadline has passed"
       });
     }
 
@@ -54,9 +54,9 @@ export const submitPaymentSlip = async (req, res) => {
     });
 
     if (existingRegistration) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        message: `You have already registered for this event. Registration status: ${existingRegistration.status}` 
+        message: `You have already registered for this event. Registration status: ${existingRegistration.status}`
       });
     }
 
@@ -74,9 +74,9 @@ export const submitPaymentSlip = async (req, res) => {
         });
       }
     } else {
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        message: "Payment slip image is required" 
+        message: "Payment slip image is required"
       });
     }
 
@@ -114,16 +114,16 @@ export const submitPaymentSlip = async (req, res) => {
 
   } catch (error) {
     if (error.code === 11000) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        message: "You have already registered for this event" 
+        message: "You have already registered for this event"
       });
     }
     console.error("Error submitting payment slip:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      message: "Server error", 
-      error: error.message 
+      message: "Server error",
+      error: error.message
     });
   }
 };
@@ -132,7 +132,7 @@ export const submitPaymentSlip = async (req, res) => {
 export const getMyPaymentSlips = async (req, res) => {
   try {
     const studentId = req.user._id;
-    
+
     const paymentSlips = await PaymentSlip.find({ studentId })
       .populate("eventId", "title startDate endDate startTime coverImageUrl venue meetLink isOnline")
       .sort({ createdAt: -1 });
@@ -151,10 +151,10 @@ export const getMyPaymentSlips = async (req, res) => {
     });
   } catch (error) {
     console.error("Error fetching payment slips:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      message: "Server error", 
-      error: error.message 
+      message: "Server error",
+      error: error.message
     });
   }
 };
@@ -163,7 +163,7 @@ export const getMyPaymentSlips = async (req, res) => {
 export const getPaymentSlipDetails = async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     const paymentSlip = await PaymentSlip.findById(id)
       .populate("eventId", "title startDate endDate startTime endTime venue address isOnline meetLink capacity coverImageUrl")
       .populate("studentId", "firstName lastName email phone studentId faculty")
@@ -171,17 +171,17 @@ export const getPaymentSlipDetails = async (req, res) => {
       .populate("checkedInBy", "firstName lastName email");
 
     if (!paymentSlip) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         success: false,
-        message: "Payment slip not found" 
+        message: "Payment slip not found"
       });
     }
 
     // Check authorization: student can view their own
     if (paymentSlip.studentId._id.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ 
+      return res.status(403).json({
         success: false,
-        message: "Access denied" 
+        message: "Access denied"
       });
     }
 
@@ -191,10 +191,10 @@ export const getPaymentSlipDetails = async (req, res) => {
     });
   } catch (error) {
     console.error("Error fetching payment slip details:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      message: "Server error", 
-      error: error.message 
+      message: "Server error",
+      error: error.message
     });
   }
 };
@@ -204,28 +204,28 @@ export const updatePaymentSlip = async (req, res) => {
   try {
     const { id } = req.params;
     const { bankName, amount, depositDate, ticketType, qty, notes } = req.body;
-    
+
     const paymentSlip = await PaymentSlip.findById(id);
     if (!paymentSlip) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         success: false,
-        message: "Payment slip not found" 
+        message: "Payment slip not found"
       });
     }
 
     // Check if student owns this slip
     if (paymentSlip.studentId.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ 
+      return res.status(403).json({
         success: false,
-        message: "Access denied" 
+        message: "Access denied"
       });
     }
 
     // Only allow update if pending
     if (paymentSlip.status !== "pending") {
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        message: `Cannot update registration that is ${paymentSlip.status}` 
+        message: `Cannot update registration that is ${paymentSlip.status}`
       });
     }
 
@@ -259,10 +259,10 @@ export const updatePaymentSlip = async (req, res) => {
     });
   } catch (error) {
     console.error("Error updating payment slip:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      message: "Server error", 
-      error: error.message 
+      message: "Server error",
+      error: error.message
     });
   }
 };
@@ -271,28 +271,28 @@ export const updatePaymentSlip = async (req, res) => {
 export const cancelPaymentSlip = async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     const paymentSlip = await PaymentSlip.findById(id);
     if (!paymentSlip) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         success: false,
-        message: "Payment slip not found" 
+        message: "Payment slip not found"
       });
     }
 
     // Check if student owns this slip
     if (paymentSlip.studentId.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ 
+      return res.status(403).json({
         success: false,
-        message: "Access denied" 
+        message: "Access denied"
       });
     }
 
     // Only allow cancellation of pending registrations
     if (paymentSlip.status !== "pending") {
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        message: `Cannot cancel registration that is ${paymentSlip.status}` 
+        message: `Cannot cancel registration that is ${paymentSlip.status}`
       });
     }
 
@@ -304,10 +304,10 @@ export const cancelPaymentSlip = async (req, res) => {
     });
   } catch (error) {
     console.error("Error cancelling payment slip:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      message: "Server error", 
-      error: error.message 
+      message: "Server error",
+      error: error.message
     });
   }
 };
@@ -318,9 +318,9 @@ export const cancelPaymentSlip = async (req, res) => {
 export const getAllPaymentSlips = async (req, res) => {
   try {
     if (req.user.role !== "admin") {
-      return res.status(403).json({ 
+      return res.status(403).json({
         success: false,
-        message: "Admin access required" 
+        message: "Admin access required"
       });
     }
 
@@ -355,10 +355,10 @@ export const getAllPaymentSlips = async (req, res) => {
     });
   } catch (error) {
     console.error("Error fetching all payment slips:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      message: "Server error", 
-      error: error.message 
+      message: "Server error",
+      error: error.message
     });
   }
 };
@@ -367,21 +367,21 @@ export const getAllPaymentSlips = async (req, res) => {
 export const getEventPaymentSlips = async (req, res) => {
   try {
     const { eventId } = req.params;
-    
+
     // Check if event exists
     const event = await Event.findById(eventId);
     if (!event) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         success: false,
-        message: "Event not found" 
+        message: "Event not found"
       });
     }
 
     // Check authorization
     if (req.user.role !== "admin" && event.createdBy.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ 
+      return res.status(403).json({
         success: false,
-        message: "You are not authorized to view registrations for this event" 
+        message: "You are not authorized to view registrations for this event"
       });
     }
 
@@ -412,10 +412,10 @@ export const getEventPaymentSlips = async (req, res) => {
     });
   } catch (error) {
     console.error("Error fetching event payment slips:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      message: "Server error", 
-      error: error.message 
+      message: "Server error",
+      error: error.message
     });
   }
 };
@@ -424,26 +424,26 @@ export const getEventPaymentSlips = async (req, res) => {
 export const getEventAttendees = async (req, res) => {
   try {
     const { eventId } = req.params;
-    
+
     // Check if user is authorized
     const event = await Event.findById(eventId);
     if (!event) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         success: false,
-        message: "Event not found" 
+        message: "Event not found"
       });
     }
 
     if (req.user.role !== "admin" && event.createdBy.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ 
+      return res.status(403).json({
         success: false,
-        message: "You are not authorized to view attendees for this event" 
+        message: "You are not authorized to view attendees for this event"
       });
     }
 
-    const attendees = await PaymentSlip.find({ 
-      eventId, 
-      status: "approved" 
+    const attendees = await PaymentSlip.find({
+      eventId,
+      status: "approved"
     })
       .populate("studentId", "firstName lastName email studentId faculty phone")
       .populate("checkedInBy", "firstName lastName email")
@@ -463,10 +463,10 @@ export const getEventAttendees = async (req, res) => {
     });
   } catch (error) {
     console.error("Error fetching event attendees:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      message: "Server error", 
-      error: error.message 
+      message: "Server error",
+      error: error.message
     });
   }
 };
@@ -476,36 +476,36 @@ export const approvePaymentSlip = async (req, res) => {
   try {
     const { id } = req.params;
     const { notes, verificationMessage } = req.body || {}; // ✅ Fix: Handle empty body
-    
+
     const paymentSlip = await PaymentSlip.findById(id);
     if (!paymentSlip) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         success: false,
-        message: "Payment slip not found" 
+        message: "Payment slip not found"
       });
     }
 
     // Check if already processed
     if (paymentSlip.status !== "pending") {
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        message: `This registration has already been ${paymentSlip.status}` 
+        message: `This registration has already been ${paymentSlip.status}`
       });
     }
 
     // Check authorization
     const event = await Event.findById(paymentSlip.eventId);
     if (!event) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         success: false,
-        message: "Event not found" 
+        message: "Event not found"
       });
     }
-    
+
     if (req.user.role !== "admin" && event.createdBy.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ 
+      return res.status(403).json({
         success: false,
-        message: "You are not authorized to approve this registration" 
+        message: "You are not authorized to approve this registration"
       });
     }
 
@@ -515,11 +515,11 @@ export const approvePaymentSlip = async (req, res) => {
         eventId: paymentSlip.eventId,
         status: "approved"
       });
-      
+
       if (approvedCount + paymentSlip.qty > event.capacity) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           success: false,
-          message: `Cannot approve: Would exceed event capacity of ${event.capacity}` 
+          message: `Cannot approve: Would exceed event capacity of ${event.capacity}`
         });
       }
     }
@@ -527,7 +527,7 @@ export const approvePaymentSlip = async (req, res) => {
     // Generate final ticket code and QR code
     const finalTicketCode = generateTicketCode();
     const finalTransactionId = generateTransactionId();
-    
+
     // Create QR code payload with registration details
     const qrPayload = JSON.stringify({
       registrationId: paymentSlip._id,
@@ -544,8 +544,8 @@ export const approvePaymentSlip = async (req, res) => {
     });
 
     // Generate QR code as data URL
-    const qrCodeDataUrl = await QRCode.toDataURL(qrPayload, { 
-      width: 400, 
+    const qrCodeDataUrl = await QRCode.toDataURL(qrPayload, {
+      width: 400,
       margin: 2,
       errorCorrectionLevel: 'H'
     });
@@ -554,28 +554,28 @@ export const approvePaymentSlip = async (req, res) => {
     paymentSlip.status = "approved";
     paymentSlip.reviewedBy = req.user._id;
     paymentSlip.reviewedAt = new Date();
-    
+
     // Handle notes - works whether provided or not
     if (notes) {
       paymentSlip.notes = notes;
     }
-    
+
     // Add verification message if provided
     if (verificationMessage) {
-      paymentSlip.notes = paymentSlip.notes 
+      paymentSlip.notes = paymentSlip.notes
         ? `${paymentSlip.notes}\nVerification: ${verificationMessage}`
         : `Verification: ${verificationMessage}`;
     } else if (!notes) {
       // Default message if no notes or verification message provided
       paymentSlip.notes = `Payment verified successfully. Amount: LKR ${paymentSlip.amount}`;
     }
-    
+
     paymentSlip.ticketCode = finalTicketCode;
     paymentSlip.transactionId = finalTransactionId;
     paymentSlip.qrCodeDataUrl = qrCodeDataUrl;
     paymentSlip.paymentStatus = "paid";
     paymentSlip.paidAt = new Date();
-    
+
     await paymentSlip.save();
 
     // Populate for response
@@ -601,10 +601,10 @@ export const approvePaymentSlip = async (req, res) => {
     });
   } catch (error) {
     console.error("Error approving payment slip:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      message: "Server error", 
-      error: error.message 
+      message: "Server error",
+      error: error.message
     });
   }
 };
@@ -614,36 +614,36 @@ export const rejectPaymentSlip = async (req, res) => {
   try {
     const { id } = req.params;
     const { rejectionReason, notes } = req.body;
-    
+
     if (!rejectionReason) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        message: "Rejection reason is required" 
+        message: "Rejection reason is required"
       });
     }
 
     const paymentSlip = await PaymentSlip.findById(id);
     if (!paymentSlip) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         success: false,
-        message: "Payment slip not found" 
+        message: "Payment slip not found"
       });
     }
 
     // Check if already processed
     if (paymentSlip.status !== "pending") {
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        message: `This registration has already been ${paymentSlip.status}` 
+        message: `This registration has already been ${paymentSlip.status}`
       });
     }
 
     // Check authorization
     const event = await Event.findById(paymentSlip.eventId);
     if (req.user.role !== "admin" && event.createdBy.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ 
+      return res.status(403).json({
         success: false,
-        message: "You are not authorized to reject this registration" 
+        message: "You are not authorized to reject this registration"
       });
     }
 
@@ -653,7 +653,7 @@ export const rejectPaymentSlip = async (req, res) => {
     paymentSlip.reviewedBy = req.user._id;
     paymentSlip.reviewedAt = new Date();
     if (notes) paymentSlip.notes = notes;
-    
+
     await paymentSlip.save();
 
     res.status(200).json({
@@ -663,10 +663,10 @@ export const rejectPaymentSlip = async (req, res) => {
     });
   } catch (error) {
     console.error("Error rejecting payment slip:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      message: "Server error", 
-      error: error.message 
+      message: "Server error",
+      error: error.message
     });
   }
 };
@@ -675,11 +675,11 @@ export const rejectPaymentSlip = async (req, res) => {
 export const checkInAttendee = async (req, res) => {
   try {
     const { qrData } = req.body;
-    
+
     if (!qrData) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        message: "QR code data is required" 
+        message: "QR code data is required"
       });
     }
 
@@ -687,9 +687,9 @@ export const checkInAttendee = async (req, res) => {
     try {
       parsedData = typeof qrData === 'string' ? JSON.parse(qrData) : qrData;
     } catch (error) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        message: "Invalid QR code format" 
+        message: "Invalid QR code format"
       });
     }
 
@@ -701,42 +701,42 @@ export const checkInAttendee = async (req, res) => {
       .populate("studentId", "firstName lastName email studentId");
 
     if (!registration) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         success: false,
-        message: "Registration not found" 
+        message: "Registration not found"
       });
     }
 
     // Verify ticket code matches
     if (registration.ticketCode !== ticketCode) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        message: "Invalid ticket code" 
+        message: "Invalid ticket code"
       });
     }
 
     // Check if registration is approved
     if (registration.status !== "approved") {
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        message: `Registration is ${registration.status}. Cannot check in.` 
+        message: `Registration is ${registration.status}. Cannot check in.`
       });
     }
 
     // Check if already checked in
     if (registration.checkedIn) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        message: `Already checked in at ${new Date(registration.checkedInAt).toLocaleString()}` 
+        message: `Already checked in at ${new Date(registration.checkedInAt).toLocaleString()}`
       });
     }
 
     // Check authorization
     const event = registration.eventId;
     if (req.user.role !== "admin" && event.createdBy.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ 
+      return res.status(403).json({
         success: false,
-        message: "You are not authorized to check in attendees for this event" 
+        message: "You are not authorized to check in attendees for this event"
       });
     }
 
@@ -761,10 +761,10 @@ export const checkInAttendee = async (req, res) => {
     });
   } catch (error) {
     console.error("Error checking in attendee:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      message: "Server error", 
-      error: error.message 
+      message: "Server error",
+      error: error.message
     });
   }
 };
@@ -773,28 +773,28 @@ export const checkInAttendee = async (req, res) => {
 export const regenerateQRCode = async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     const paymentSlip = await PaymentSlip.findById(id);
     if (!paymentSlip) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         success: false,
-        message: "Payment slip not found" 
+        message: "Payment slip not found"
       });
     }
 
     if (paymentSlip.status !== "approved") {
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        message: "QR code can only be regenerated for approved registrations" 
+        message: "QR code can only be regenerated for approved registrations"
       });
     }
 
     // Check authorization
     const event = await Event.findById(paymentSlip.eventId);
     if (req.user.role !== "admin" && event.createdBy.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ 
+      return res.status(403).json({
         success: false,
-        message: "You are not authorized to regenerate QR code" 
+        message: "You are not authorized to regenerate QR code"
       });
     }
 
@@ -813,8 +813,8 @@ export const regenerateQRCode = async (req, res) => {
       regeneratedBy: req.user._id
     });
 
-    const newQRCodeDataUrl = await QRCode.toDataURL(qrPayload, { 
-      width: 400, 
+    const newQRCodeDataUrl = await QRCode.toDataURL(qrPayload, {
+      width: 400,
       margin: 2,
       errorCorrectionLevel: 'H'
     });
@@ -829,10 +829,10 @@ export const regenerateQRCode = async (req, res) => {
     });
   } catch (error) {
     console.error("Error regenerating QR code:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      message: "Server error", 
-      error: error.message 
+      message: "Server error",
+      error: error.message
     });
   }
 };
@@ -841,25 +841,25 @@ export const regenerateQRCode = async (req, res) => {
 export const downloadQRCode = async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     const paymentSlip = await PaymentSlip.findById(id);
     if (!paymentSlip) {
       return res.status(404).json({ message: "Registration not found" });
     }
-    
+
     // Check if student owns this registration
     if (paymentSlip.studentId.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: "Access denied" });
     }
-    
+
     if (paymentSlip.status !== "approved") {
       return res.status(400).json({ message: "QR code not available yet" });
     }
-    
+
     // Remove the data:image/png;base64, prefix to get pure base64
     const base64Data = paymentSlip.qrCodeDataUrl.replace(/^data:image\/png;base64,/, '');
     const imageBuffer = Buffer.from(base64Data, 'base64');
-    
+
     res.setHeader('Content-Type', 'image/png');
     res.setHeader('Content-Disposition', `attachment; filename=ticket-${paymentSlip.ticketCode}.png`);
     res.send(imageBuffer);

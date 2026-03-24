@@ -514,3 +514,85 @@ export const getMyRegistrations = async (req, res) => {
     });
   }
 };
+
+// ADMIN: Get all events with card-registration booking counts
+export const getAdminAllBookings = async (req, res) => {
+  try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ success: false, message: "Admin access required" });
+    }
+
+    // Fetch all events
+    const events = await Event.find({})
+      .populate("createdBy", "firstName lastName email role")
+      .sort({ createdAt: -1 });
+
+    // For each event, count registrations (card payments) and slip registrations
+    const eventsWithCounts = await Promise.all(
+      events.map(async (ev) => {
+        const cardCount = await EventRegistration.countDocuments({ event: ev._id });
+        return {
+          ...ev.toObject(),
+          cardBookingCount: cardCount,
+        };
+      })
+    );
+
+    return res.status(200).json({
+      success: true,
+      count: eventsWithCounts.length,
+      events: eventsWithCounts,
+    });
+  } catch (error) {
+    console.error("Admin All Bookings Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
+// ADMIN: Get all card registrations for a specific event
+export const getAdminEventBookings = async (req, res) => {
+  try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ success: false, message: "Admin access required" });
+    }
+
+    const { eventId } = req.params;
+
+    const event = await Event.findById(eventId).populate("createdBy", "firstName lastName email");
+    if (!event) {
+      return res.status(404).json({ success: false, message: "Event not found" });
+    }
+
+    const registrations = await EventRegistration.find({ event: eventId })
+      .populate("student", "firstName lastName email studentId faculty phone role")
+      .sort({ createdAt: -1 });
+
+    const stats = {
+      total: registrations.length,
+      totalRevenue: registrations.reduce((sum, r) => sum + (r.amount || 0), 0),
+      ticketBreakdown: registrations.reduce((acc, r) => {
+        acc[r.ticketName] = (acc[r.ticketName] || 0) + 1;
+        return acc;
+      }, {}),
+    };
+
+    return res.status(200).json({
+      success: true,
+      event: event.toObject(),
+      count: registrations.length,
+      stats,
+      registrations,
+    });
+  } catch (error) {
+    console.error("Admin Event Bookings Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};

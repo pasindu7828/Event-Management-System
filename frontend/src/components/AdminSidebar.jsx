@@ -15,6 +15,7 @@ const AdminSidebar = () => {
         { path: '/admin/users', icon: '👥', label: 'Manage Users' },
         { path: '/admin/events', icon: '📅', label: 'All Events' },
         { path: '/admin/payment-slips', icon: '🧾', label: 'Payment Slips' },
+        { path: '/admin/event-bookings', icon: '📋', label: 'Event Bookings' },
         { path: '/admin/announcements', icon: '📢', label: 'Announcements' },
         { path: '/admin/settings', icon: '⚙️', label: 'Settings' },
     ];

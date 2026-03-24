@@ -18,6 +18,7 @@ import AdminEvents from './components/AdminEvents';
 import AdminAnnouncements from './components/AdminAnnouncements';
 import AdminSettings from './components/AdminSettings';
 import AdminPaymentSlips from './components/AdminPaymentSlips';
+import AdminEventBookings from './components/AdminEventBookings';
 import CreateEventPage from './components/Createeventpage';
 import MyEventsPage from './components/MyEventsPage';
 import EventsPage from './components/EventsPage';
@@ -150,6 +151,14 @@ function App() {
           element={
             <ProtectedRoute adminOnly={true}>
               <AdminPaymentSlips />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/event-bookings"
+          element={
+            <ProtectedRoute adminOnly={true}>
+              <AdminEventBookings />
             </ProtectedRoute>
           }
         />

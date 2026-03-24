@@ -102,6 +102,20 @@ const getMyRegistrations = () => {
   });
 };
 
+const getAdminAllBookings = () => {
+  const token = AuthService.getAuthToken();
+  return axios.get(`${API_URL}/admin/bookings`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+};
+
+const getAdminEventBookings = (eventId) => {
+  const token = AuthService.getAuthToken();
+  return axios.get(`${API_URL}/admin/bookings/${eventId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+};
+
 export default {
   createEvent,
   updateEvent,
@@ -111,4 +125,7 @@ export default {
   getEventById,
   registerForEvent,
   getMyRegistrations,
+  getAdminAllBookings,
+  getAdminEventBookings,
 };
+
